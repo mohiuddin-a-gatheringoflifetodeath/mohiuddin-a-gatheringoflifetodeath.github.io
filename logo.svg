@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <rect rx="18" width="120" height="120" fill="#0b3d91"/>
+  <g transform="translate(18 20)">
+    <circle cx="18" cy="18" r="18" fill="#fff" opacity="0.08"/>
+    <text x="8" y="28" font-family="Hind Siliguri, sans-serif" font-size="22" fill="#fff" font-weight="700">M</text>
+  </g>
+</svg>

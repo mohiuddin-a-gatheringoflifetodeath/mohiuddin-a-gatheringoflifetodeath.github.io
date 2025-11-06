@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Mohiuddin — A Gathering of Life to Death</title>
+
+<!-- favicon and logo (uses repo file logo.svg) -->
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+
+<!-- Google Font -->
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg:#f8f9fa;
+    --card:#ffffff;
+    --brand:#0b3d91;
+    --accent:#ff6b35;
+    --muted:#666;
+    --font:'Hind Siliguri',sans-serif;
+    --maxw:1100px;
+  }
+  *{box-sizing:border-box}
+  body{font-family:var(--font);margin:0;background:var(--bg);color:#111}
+  header{background:linear-gradient(90deg,var(--brand),#1140a8);color:#fff;padding:18px 12px}
+  .wrap{max-width:var(--maxw);margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand img{height:48px;width:48px;border-radius:8px;background:#fff;padding:6px}
+  h1{margin:0;font-size:1.1rem}
+  p.tag{margin:0;opacity:.9;font-size:.92rem}
+  main.container{max-width:var(--maxw);margin:20px auto;padding:0 12px}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
+  .controls{display:flex;gap:8px;align-items:center}
+  .search{padding:9px 10px;border-radius:8px;border:1px solid #ddd;min-width:200px}
+  .lang-btn{padding:8px 10px;border-radius:8px;border:0;cursor:pointer;background:#fff;color:var(--brand);font-weight:600}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+  .branch{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.06);cursor:pointer;transition:transform .12s}
+  .branch:hover{transform:translateY(-6px)}
+  .branch h3{margin:0 0 6px;color:var(--brand)}
+  .branch p{margin:0;color:var(--muted);font-size:.95rem}
+
+  /* sub view */
+  .subview{display:none;margin-top:18px}
+  .crumb{color:var(--muted);margin-bottom:8px}
+  .subgrid{display:grid;grid-template-columns:1fr 420px;gap:14px}
+  .panel{background:var(--card);padding:14px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.04)}
+  .folders{display:flex;gap:8px;margin-bottom:12px}
+  .folder-btn{flex:1;padding:10px;border-radius:8px;border:1px solid #eee;background:#f7f7f7;cursor:pointer}
+  .list{max-height:56vh;overflow:auto}
+  .pdf-item{display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px dashed #eee}
+  .pdf-item .meta{max-width:70%}
+  .viewer iframe{width:100%;height:68vh;border:0;border-radius:6px}
+  .viewer-empty{height:68vh;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:0.95rem;background:#fafafa;border-radius:8px}
+
+  footer{max-width:var(--maxw);margin:26px auto;padding:16px;color:var(--muted);text-align:center;font-size:.92rem}
+
+  /* admin local panel */
+  .admin-panel{display:none;margin-top:12px}
+  .admin-input{padding:8px;border:1px solid #ddd;border-radius:8px;width:100%}
+  .btn-primary{background:var(--brand);color:#fff;border:0;padding:8px 10px;border-radius:8px;cursor:pointer}
+  .btn-outline{background:#fff;border:1px solid #ddd;padding:8px;border-radius:8px;cursor:pointer}
+
+  @media (max-width:900px){ .subgrid{grid-template-columns:1fr} .viewer iframe{height:50vh} .search{min-width:120px} }
+</style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="brand">
+        <img src="logo.svg" alt="logo" id="logoImg">
+        <div>
+          <h1 id="titleText">Mohiuddin — A Gathering of Life to Death</h1>
+          <p class="tag" id="taglineText">Philosophy • Theology • History • Science — Save & read PDFs</p>
+        </div>
+      </div>
+
+      <div class="controls">
+        <input id="search" class="search" placeholder="Search branches or PDFs..." />
+        <button id="langToggle" class="lang-btn">বাংলা</button>
+        <button id="adminToggle" class="btn-outline">Admin</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- MAIN BRANCHES -->
+    <div id="mainView">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <h2 id="mainHeading">Main Branches</h2>
+        <div class="small muted" id="helpText">Click a branch to open sub-branches</div>
+      </div>
+      <div id="branchesGrid" class="grid"></div>
+    </div>
+
+    <!-- SUB VIEW -->
+    <div id="subView" class="subview">
+      <div class="crumb"><button id="backMain" class="btn-outline">←</button> <span id="crumbText"></span></div>
+      <div class="subgrid">
+        <div class="panel list">
+          <h3 id="subTitle">Sub-branches</h3>
+          <div id="subList"></div>
+        </div>
+
+        <div class="panel viewer" id="viewerPanel">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div>
+              <strong id="viewerTitle">Select a PDF to view</strong>
+              <div class="small" id="viewerPath">—</div>
+            </div>
+            <div>
+              <a id="downloadBtn" href="#" target="_blank"><button class="btn-primary">Download</button></a>
+            </div>
+          </div>
+
+          <div id="viewerArea" class="viewer-empty">No PDF selected</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin local panel (temporary additions saved to localStorage) -->
+    <div id="adminPanel" class="admin-panel panel">
+      <h3 id="adminTitle">Admin (Local add)</h3>
+      <p class="small" id="adminHelp">Use to test quickly — to make permanent, edit <code>data.json</code> in repo.</p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <input id="admMain" class="admin-input" placeholder="Main branch (Science)" />
+        <input id="admSub" class="admin-input" placeholder="Sub branch (Physics)" />
+        <input id="admFolder" class="admin-input" placeholder="Folder (Basic/Advanced)" />
+        <input id="admTitle" class="admin-input" placeholder="PDF Title" />
+        <input id="admUrl" class="admin-input" placeholder="PDF URL (relative / absolute)" />
+      </div>
+      <div style="margin-top:8px;display:flex;gap:8px">
+        <button id="saveLocalBtn" class="btn-primary">Save Locally</button>
+        <button id="showLocalBtn" class="btn-outline">Show Local Items</button>
+      </div>
+      <div id="localList" style="margin-top:10px"></div>
+    </div>
+  </main>
+
+  <footer>
+    <span id="footerText">© 2025 Mohiuddin Bhuiyan — Maintain your knowledge library as PDFs.</span>
+  </footer>
+
+<script>
+/* ---------------- CONFIG ---------------- */
+const REPO_BASE = ''; // leave empty when using relative paths
+const DATA_FILE = 'data.json';
+let DATA = { branches: [] };
+let currentMain = null, currentSub = null, currentFolder = null;
+const $ = id => document.getElementById(id);
+
+/* -------- language strings (EN / BN) -------- */
+const STR = {
+  en: {
+    mainBranches: 'Main Branches',
+    clickToOpen: 'Click a branch to open sub-branches',
+    selectPdf: 'Select a PDF to view',
+    download: 'Download',
+    adminTitle: 'Admin (Local add)',
+    adminHelp: 'Use to test quickly — to make permanent, edit data.json in repo.',
+    footer: '© 2025 Mohiuddin Bhuiyan — Maintain your knowledge library as PDFs.'
+  },
+  bn: {
+    mainBranches: 'প্রধান শাখাসমূহ',
+    clickToOpen: 'শাখায় ক্লিক করলে সাব-শাখা খোলা হবে',
+    selectPdf: 'পড়ার জন্য একটি PDF চয়ন কর',
+    download: 'ডাউনলোড',
+    adminTitle: 'অ্যাডমিন (লোকালি যোগ)',
+    adminHelp: 'দ্রুত পরীক্ষার জন্য। স্থায়ী করতে repo তে data.json সম্পাদন করো।',
+    footer: '© 2025 Mohiuddin Bhuiyan — তোমার নলেজ লাইব্রেরি (PDF)।'
+  }
+};
+
+/* ---------- init ---------- */
+let LANG = localStorage.getItem('site_lang') || 'en';
+setLanguage(LANG);
+
+async function loadData(){
+  try{
+    const res = await fetch(DATA_FILE + '?t=' + Date.now());
+    if(!res.ok) throw new Error('data.json not found');
+    DATA = await res.json();
+  } catch(err){
+    console.warn('Could not load data.json — starting empty', err);
+    DATA = { branches: [] };
+  }
+  renderMain();
+}
+
+/* ---------- render main branches ---------- */
+function renderMain(filter=''){
+  $('mainHeading').innerText = STR[LANG].mainBranches;
+  $('helpText').innerText = STR[LANG].clickToOpen;
+  const grid = $('branchesGrid'); grid.innerHTML = '';
+  const branches = DATA.branches || [];
+  const list = filter ? branches.filter(b=>b.name.toLowerCase().includes(filter.toLowerCase())) : branches;
+  if(list.length === 0){
+    grid.innerHTML = `<div class="branch"><h3>No branches</h3><p class="small">${STR[LANG].adminHelp}</p></div>`;
+    return;
+  }
+  for(const b of list){
+    const el = document.createElement('div'); el.className='branch';
+    el.innerHTML = `<h3>${b.name}</h3><p>${b.summary || ''}</p>`;
+    el.addEventListener('click', ()=> openSub(b.name));
+    grid.appendChild(el);
+  }
+}
+
+/* ---------- open sub-branches ---------- */
+function openSub(name){
+  currentMain = name;
+  const branch = (DATA.branches||[]).find(x=>x.name===name);
+  $('mainView').style.display='none';
+  $('subView').style.display='block';
+  $('crumbText').innerText = name;
+  renderSub(branch);
+}
+
+function goBackMain(){
+  currentMain = currentSub = currentFolder = null;
+  $('subView').style.display='none';
+  $('mainView').style.display='block';
+  $('viewerArea').innerHTML = '<div class="viewer-empty">No PDF selected</div>';
+}
+
+$('backMain').addEventListener('click', goBackMain);
+
+/* ---------- render sub list ---------- */
+function renderSub(branch){
+  const subList = $('subList'); subList.innerHTML = '';
+  if(!branch || !branch.sub || branch.sub.length===0){
+    subList.innerHTML = `<div class="small">${STR[LANG].adminHelp}</div>`;
+    return;
+  }
+  branch.sub.forEach(s=>{
+    const node = document.createElement('div');
+    node.style.padding='8px 0';
+    node.innerHTML = `<strong style="display:block">${s.name}</strong><div class="small">${s.description||''}</div>`;
+    node.addEventListener('click', ()=> {
+      currentSub = s.name;
+      renderFolderButtons(branch.name, s);
+    });
+    subList.appendChild(node);
+  });
+}
+
+/* ---------- folder view (Basic / Advanced) ---------- */
+function renderFolderButtons(mainName, subObj){
+  const subList = $('subList'); subList.innerHTML = '';
+  const top = document.createElement('div'); top.className='folders';
+  const b1 = document.createElement('div'); b1.className='folder-btn'; b1.innerText = 'Basic';
+  const b2 = document.createElement('div'); b2.className='folder-btn'; b2.innerText = 'Advanced';
+  b1.addEventListener('click', ()=> showFiles(mainName, subObj, 'Basic'));
+  b2.addEventListener('click', ()=> showFiles(mainName, subObj, 'Advanced'));
+  top.appendChild(b1); top.appendChild(b2);
+  subList.appendChild(top);
+
+  // show small info
+  const info = document.createElement('div'); info.className='small'; info.style.marginTop='10px';
+  info.innerText = subObj.description || '';
+  subList.appendChild(info);
+}
+
+/* ---------- show files ---------- */
+function showFiles(mainName, subObj, folder){
+  currentFolder = folder;
+  // rebuild list to show files
+  const subList = $('subList'); subList.innerHTML = '';
+  const top = document.createElement('div'); top.className='folders';
+  const b1 = document.createElement('div'); b1.className='folder-btn'; b1.innerText = 'Basic';
+  const b2 = document.createElement('div'); b2.className='folder-btn'; b2.innerText = 'Advanced';
+  b1.addEventListener('click', ()=> showFiles(mainName, subObj, 'Basic'));
+  b2.addEventListener('click', ()=> showFiles(mainName, subObj, 'Advanced'));
+  top.appendChild(b1); top.appendChild(b2);
+  subList.appendChild(top);
+
+  const files = (subObj.files && subObj.files[folder]) ? subObj.files[folder] : [];
+  if(!files || files.length===0){
+    const msg = document.createElement('div'); msg.className='small'; msg.style.padding='8px';
+    msg.innerText = 'No PDFs in this folder yet. Upload PDFs to repo and update data.json.';
+    subList.appendChild(msg);
+    return;
+  }
+
+  files.forEach(p=>{
+    const row = document.createElement('div'); row.className='pdf-item';
+    const meta = document.createElement('div'); meta.className='meta';
+    meta.innerHTML = `<strong>${p.title}</strong><div class="small">${p.info||''}</div>`;
+    const actions = document.createElement('div');
+    const viewBtn = document.createElement('button'); viewBtn.className='btn-outline'; viewBtn.innerText = 'View';
+    viewBtn.addEventListener('click', ()=> openPdf(p));
+    actions.appendChild(viewBtn);
+    row.appendChild(meta); row.appendChild(actions);
+    subList.appendChild(row);
+  });
+}
+
+/* ---------- open PDF ---------- */
+function openPdf(p){
+  $('viewerTitle').innerText = p.title || STR[LANG].selectPdf;
+  $('viewerPath').innerText = `${currentMain || ''} / ${currentSub || ''} / ${currentFolder || ''}`;
+  const viewer = $('viewerArea'); viewer.innerHTML = '';
+  // use direct URL or relative path
+  const url = p.url.startsWith('http') ? p.url : (REPO_BASE + p.url);
+  // create iframe (PDF viewer). GitHub raw urls will work. If browser blocks, user can download.
+  const iframe = document.createElement('iframe'); iframe.src = url;
+  viewer.appendChild(iframe);
+  $('downloadBtn').href = url;
+  $('downloadBtn').innerText = STR[LANG].download;
+}
+
+/* ---------- search ---------- */
+$('search').addEventListener('input', (e)=>{
+  const q = e.target.value.trim().toLowerCase();
+  if(!q) return renderMain();
+  // simple search: branch name or pdf title matches
+  const matches = DATA.branches.filter(b => {
+    if(b.name.toLowerCase().includes(q)) return true;
+    // search subs and files
+    return (b.sub||[]).some(s => {
+      if(s.name.toLowerCase().includes(q) || (s.description||'').toLowerCase().includes(q)) return true;
+      const allFiles = Object.values(s.files||{}).flat();
+      return allFiles.some(f => (f.title||'').toLowerCase().includes(q));
+    });
+  });
+  renderMain('');
+  // temporarily show matches only
+  const grid = $('branchesGrid'); grid.innerHTML='';
+  if(matches.length===0) grid.innerHTML = `<div class="branch"><h3>No results</h3></div>`;
+  else matches.forEach(b=> {
+    const el = document.createElement('div'); el.className='branch';
+    el.innerHTML = `<h3>${b.name}</h3><p>${b.summary||''}</p>`;
+    el.addEventListener('click', ()=> openSub(b.name));
+    grid.appendChild(el);
+  });
+});
+
+/* ---------- admin local actions ---------- */
+$('adminToggle').addEventListener('click', ()=>{
+  const panel = $('adminPanel');
+  panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+});
+
+$('saveLocalBtn').addEventListener('click', ()=>{
+  const main = $('admMain').value.trim(), sub = $('admSub').value.trim(), folder = $('admFolder').value.trim() || 'Basic';
+  const title = $('admTitle').value.trim(), url = $('admUrl').value.trim();
+  if(!main || !sub || !title || !url){ alert('Fill Main, Sub, Title and URL'); return; }
+  const arr = JSON.parse(localStorage.getItem('localPdfAdds')||'[]');
+  arr.push({main, sub, folder, title, url});
+  localStorage.setItem('localPdfAdds', JSON.stringify(arr));
+  alert('Saved locally. To make permanent, upload PDF and update data.json.');
+  $('admMain').value=''; $('admSub').value=''; $('admFolder').value=''; $('admTitle').value=''; $('admUrl').value='';
+});
+
+$('showLocalBtn').addEventListener('click', ()=>{
+  const arr = JSON.parse(localStorage.getItem('localPdfAdds')||'[]'), out = $('localList');
+  out.innerHTML='';
+  if(arr.length===0){ out.innerHTML = '<div class="small">No local items.</div>'; return; }
+  arr.forEach((it, idx) => {
+    const d = document.createElement('div'); d.style.padding='6px'; d.innerHTML = `<strong>${it.title}</strong><div class="small">${it.main} / ${it.sub} / ${it.folder}</div>
+      <div style="margin-top:6px"><button class="btn-primary" onclick='applyLocal(${idx})'>Apply to view</button></div>`;
+    out.appendChild(d);
+  });
+});
+
+window.applyLocal = function(i){
+  const arr = JSON.parse(localStorage.getItem('localPdfAdds')||'[]'); const it = arr[i];
+  if(!it) return;
+  currentMain = it.main; currentSub = it.sub; currentFolder = it.folder;
+  $('mainView').style.display='none'; $('subView').style.display='block';
+  $('crumbText').innerText = `${currentMain} / ${currentSub}`;
+  // render a single item list
+  $('subList').innerHTML = '';
+  const top = document.createElement('div'); top.className='folders';
+  const b1 = document.createElement('div'); b1.className='folder-btn'; b1.innerText = 'Basic'; b1.onclick = ()=> {};
+  const b2 = document.createElement('div'); b2.className='folder-btn'; b2.innerText = 'Advanced'; b2.onclick = ()=> {};
+  top.appendChild(b1); top.appendChild(b2);
+  $('subList').appendChild(top);
+  const item = document.createElement('div'); item.className='pdf-item';
+  const meta = document.createElement('div'); meta.className='meta'; meta.innerHTML=`<strong>${it.title}</strong><div class="small">${it.url}</div>`;
+  const actions = document.createElement('div'); const viewBtn = document.createElement('button'); viewBtn.className='btn-outline'; viewBtn.innerText='View'; viewBtn.onclick = ()=> openPdf({title:it.title,url:it.url});
+  actions.appendChild(viewBtn); item.appendChild(meta); item.appendChild(actions);
+  $('subList').appendChild(item);
+};
+
+/* ---------- language toggle ---------- */
+$('langToggle').addEventListener('click', ()=>{
+  LANG = LANG === 'en' ? 'bn' : 'en';
+  localStorage.setItem('site_lang', LANG);
+  setLanguage(LANG);
+});
+function setLanguage(lang){
+  LANG = lang;
+  $('langToggle').innerText = (lang==='en') ? 'বাংলা' : 'English';
+  $('mainHeading').innerText = STR[lang].mainBranches;
+  $('helpText').innerText = STR[lang].clickToOpen;
+  $('viewerTitle').innerText = STR[lang].selectPdf;
+  $('adminTitle').innerText = STR[lang].adminTitle;
+  $('adminHelp').innerText = STR[lang].adminHelp;
+  $('footerText').innerText = STR[lang].footer;
+}
+
+/* ---------- helper ---------- */
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ---------- init load ---------- */
+loadData();
+</script>
+</body>
+</html>

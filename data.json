@@ -1,0 +1,55 @@
+{
+  "branches": [
+    {
+      "name": "Philosophy",
+      "summary": "Ethics, Logic, Metaphysics",
+      "sub": [
+        {
+          "name": "Ethics",
+          "description": "Basic to advanced ethics notes",
+          "files": {
+            "Basic": [
+              { "title": "Introduction to Ethics (Basic)", "info":"Short notes", "url":"pdfs/philosophy_ethics_basic_intro.pdf" }
+            ],
+            "Advanced": [
+              { "title": "Metaethics Notes", "info":"Advanced", "url":"pdfs/philosophy_ethics_advanced_meta.pdf" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Theology",
+      "summary": "Qur'an, Hadith, Aqeedah",
+      "sub": []
+    },
+    {
+      "name": "History",
+      "summary": "Ancient to Modern History",
+      "sub": []
+    },
+    {
+      "name": "Science",
+      "summary": "Physics, Chemistry, Biology",
+      "sub": [
+        {
+          "name": "Physics",
+          "description": "Mechanics → Quantum → Field theory",
+          "files": {
+            "Basic": [
+              { "title": "Classical Mechanics - Intro", "info":"Basic notes", "url":"pdfs/science_physics_basic_classical_mech.pdf" }
+            ],
+            "Advanced": [
+              { "title": "Quantum Field Theory - Outline", "info":"Advanced notes", "url":"pdfs/science_physics_advanced_qft.pdf" }
+            ]
+          }
+        },
+        {
+          "name": "Chemistry",
+          "description": "Physical & Organic Chemistry",
+          "files": { "Basic": [], "Advanced": [] }
+        }
+      ]
+    }
+  ]
+}
